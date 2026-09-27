@@ -3,16 +3,15 @@
  *  output. Images, extra blocks, copy action and the date-aware clock follow
  *  the built-in user bubble behavior. */
 
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   IconCheckOutline16, IconCopyOutline16, JsonBlock, Tooltip, writeClipboard,
 } from '@deepseek-ai/dsh-client-ui-primitives'
-import { ImageGallery, type ImageLoader } from '@deepseek-ai/dsh-client-ui-attachment'
 import type {
-  SteeringMessageNode, UserMessageNode,
-} from '@deepseek-ai/dsh-client-runtime/client'
-import type { ChatNodeViewProps, ChatViewSlotProps } from '@deepseek-ai/dsh-client-ui-conversation/client'
+  ChatNodeViewProps, ChatViewSlotProps, SteeringMessageNode, UserMessageNode,
+} from '@deepseek-ai/dsh-client-ui-chat/client'
+import type { RenderMessageImages } from '@deepseek-ai/dsh-client-ui-conversation/client'
 import { MarkstreamMarkdown } from './renderer.tsx'
 
 type UserMessageData = UserMessageNode | SteeringMessageNode
@@ -37,21 +36,6 @@ function contentParts(content: UserContent): {
     }
   }
   return { text: texts.join(''), images, rest }
-}
-
-/** DSH conversation-locale labels for the chat-history image gallery. */
-function messageImageLabels(t: ChatViewSlotProps['t']) {
-  return {
-    image: t('image.label'),
-    open: t('image.openOriginal'),
-    openNamed: (label: string) => t('image.openOriginalLabel', { label }),
-    loading: t('image.loading'),
-    loadFailed: t('image.loadFailed'),
-    lightbox: {
-      dialog: t('image.preview'),
-      close: t('image.closePreview'),
-    },
-  }
 }
 
 function pad2(n: number): string {
@@ -151,16 +135,16 @@ function UserCopyActions({ text, time, t }: {
 }
 
 /** Right-aligned user bubble with Markstream-rendered text. */
-export function UserMarkdownBubble({ content, time, loadImage, t }: {
+export function UserMarkdownBubble({ content, time, renderMessageImages, t }: {
   content: UserContent
   time: number
-  loadImage?: ImageLoader | undefined
+  renderMessageImages: RenderMessageImages
   t: ChatViewSlotProps['t']
 }): ReactNode {
-  const imageLoader = loadImage ?? (() => Promise.reject(new Error(t('image.serviceUnavailable'))))
   const { text, images, rest } = useMemo(() => contentParts(content), [content])
   const truncated = (total: number): string => t('json.truncated', { total })
   const showBubble = text !== '' || rest.length > 0
+  const compactImages = images.length > 1
   const hasCodeBlock = /(^|\n)\s*(```|~~~)/.test(text)
   const stackClassName = hasCodeBlock
     ? 'dsh-better-markdown__user-stack dsh-better-markdown__user-stack--code'
@@ -171,7 +155,15 @@ export function UserMarkdownBubble({ content, time, loadImage, t }: {
   return (
     <div className="dsh-better-markdown__user-row" data-time-hover-root>
       <div className={stackClassName}>
-        <ImageGallery images={images} load={imageLoader} align="end" labels={messageImageLabels(t)} />
+        {images.length > 0 && (
+          <div className="dsh-better-markdown__user-images" data-message-attachments>
+            {images.map((image, index) => (
+              <Fragment key={`image:${index}`}>
+                {renderMessageImages({ images: [image], align: 'end', compact: compactImages })}
+              </Fragment>
+            ))}
+          </div>
+        )}
         {showBubble && (
           <div className={bubbleClassName}>
             {text !== '' && <MarkstreamMarkdown text={text} streaming={false} />}
@@ -193,14 +185,14 @@ export function UserMarkdownBubble({ content, time, loadImage, t }: {
 
 /** Shadow renderer for `conversation.chat.node` keys `user` and `steering`. */
 export const BetterUserNodeView = memo(function BetterUserNodeView({
-  node, loadImage, t,
+  node, renderMessageImages, t,
 }: ChatNodeViewProps<'user' | 'steering'>) {
   const data = node.data
   return (
     <UserMarkdownBubble
       content={data.content}
       time={data.time}
-      loadImage={loadImage}
+      renderMessageImages={renderMessageImages}
       t={t}
     />
   )

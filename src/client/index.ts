@@ -1,6 +1,9 @@
 /** Browser half: shadow the built-in assistant and user renderers at a lower slot priority. */
 
 import type { Context } from '@deepseek-ai/cordis'
+// Type-only: pulls the renderer's SlotRegistry merge onto Context (ctx.slots.inject/register).
+// The client runtime no longer declares `ctx.slots` in 0.1.5-rc.3.
+import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { removeCustomComponents, setCustomComponents } from 'markstream-react'
 import 'markstream-react/index.css'
 import './styles.css'
@@ -38,20 +41,20 @@ export function apply(ctx: Context): void {
     name: 'conversation.chat.node',
     key: 'assistant-step',
     priority: -100,
-    locale: 'conversation',
+    locale: 'chat',
   }, BetterAssistantNodeView))
 
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register({
     name: 'conversation.chat.node',
     key: 'user',
     priority: -100,
-    locale: 'conversation',
+    locale: 'chat',
   }, BetterUserNodeView))
 
   ctx.slots.inject('conversation.chat.node', () => ctx.slots.register({
     name: 'conversation.chat.node',
     key: 'steering',
     priority: -100,
-    locale: 'conversation',
+    locale: 'chat',
   }, BetterUserNodeView))
 }

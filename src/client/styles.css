@@ -179,6 +179,16 @@
   line-height: 24px;
 }
 
+/* Image attachments are rendered by the `conversation.message.images` slot;
+   keep the same right-aligned stack as the built-in attachment row. */
+.dsh-better-markdown__user-images {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 100%;
+}
+
 /* Code-block user messages should span the same max bubble width as long
    plain-text messages instead of shrinking to the code block's intrinsic
    width. */

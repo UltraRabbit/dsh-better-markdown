@@ -1,15 +1,13 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import MarkdownRender, { MarkdownCodeBlockNode } from 'markstream-react'
 import type { NodeComponentProps } from 'markstream-react'
 import type { CodeBlockNode, ImageNode, InlineCodeNode, LinkNode } from 'stream-markdown-parser'
 import { DisclosureRow, IconThinkOutline14, JsonBlock } from '@deepseek-ai/dsh-client-ui-primitives'
 import type { MarkdownFileMentions } from '@deepseek-ai/dsh-client-ui-primitives'
-import { ImageGallery } from '@deepseek-ai/dsh-client-ui-attachment'
-import type { ImageLoader } from '@deepseek-ai/dsh-client-ui-attachment'
 import type {
-  AssistantChatData, ChatNodeViewProps, ChatViewSlotProps, TurnTailOwnerProps,
-} from '@deepseek-ai/dsh-client-ui-conversation/client'
+  AssistantChatData, ChatNodeOwnerProps, ChatNodeViewProps, ChatViewSlotProps, TurnTailOwnerProps,
+} from '@deepseek-ai/dsh-client-ui-chat/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { SHIKI_LANGUAGES } from './shiki.ts'
 
@@ -225,15 +223,14 @@ function ReasoningRow({ text, running, t }: {
 
 type AssistantBlock = AssistantChatData['blocks'][number]
 
-function BetterAssistantMarkdown({ blocks, streaming, interrupted, loadImage, mentions, t }: {
+function BetterAssistantMarkdown({ blocks, streaming, interrupted, renderMessageImages, mentions, t }: {
   blocks: readonly AssistantBlock[]
   streaming: boolean
   interrupted?: boolean | undefined
-  loadImage?: ImageLoader | undefined
+  renderMessageImages: ChatNodeOwnerProps['renderMessageImages']
   mentions?: MarkdownFileMentions | undefined
   t: ChatViewSlotProps['t']
 }) {
-  const imageLoader = loadImage ?? (() => Promise.reject(new Error(t('image.serviceUnavailable'))))
   const last = blocks.length - 1
   const hasVisible = streaming || interrupted === true || blocks.some(block => block.kind !== 'tool-call')
   if (!hasVisible) return null
@@ -260,23 +257,9 @@ function BetterAssistantMarkdown({ blocks, streaming, interrupted, loadImage, me
           index += 1
         }
         rendered.push(
-          <ImageGallery
-            key={start}
-            images={group}
-            load={imageLoader}
-            align="start"
-            labels={{
-              image: t('image.label'),
-              open: t('image.openOriginal'),
-              openNamed: label => t('image.openOriginalLabel', { label }),
-              loading: t('image.loading'),
-              loadFailed: t('image.loadFailed'),
-              lightbox: {
-                dialog: t('image.preview'),
-                close: t('image.closePreview'),
-              },
-            }}
-          />,
+          <Fragment key={start}>
+            {renderMessageImages({ images: group, align: 'start', compact: group.length > 1 })}
+          </Fragment>,
         )
         break
       }
@@ -305,7 +288,7 @@ function BetterAssistantMarkdown({ blocks, streaming, interrupted, loadImage, me
 
 /** Streaming, settled, and interrupted assistant states rendered through Markstream. */
 export const BetterAssistantNodeView = memo(function BetterAssistantNodeView({
-  node, useTurnData, openFile, loadImage, fileMentions, t,
+  node, useTurnData, openFile, renderMessageImages, fileMentions, t,
 }: ChatNodeViewProps<'assistant-step'>) {
   const data = node.data
   const turn = node.location.kind === 'turn' || node.location.kind === 'step'
@@ -326,7 +309,7 @@ export const BetterAssistantNodeView = memo(function BetterAssistantNodeView({
       blocks={data.blocks}
       streaming={data.status === 'running'}
       interrupted={data.status === 'interrupted'}
-      loadImage={loadImage}
+      renderMessageImages={renderMessageImages}
       mentions={mentions}
       t={t}
     />

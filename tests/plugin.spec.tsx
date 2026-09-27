@@ -70,13 +70,39 @@ describe('browser plugin', () => {
       <UserMarkdownBubble
         content={[{ type: 'text', text: '# Hello\n\n**bold**' }] as never}
         time={Date.now()}
-        loadImage={undefined}
+        renderMessageImages={() => null}
         t={t}
       />,
     )
     expect(view.container.querySelector('[data-markdown-renderer="markstream-react"] .markstream-react')).not.toBeNull()
     expect(screen.getByRole('heading', { name: 'Hello' })).toBeTruthy()
     expect(screen.getByText('bold').closest('strong')).not.toBeNull()
+    plugin.dispose()
+  })
+
+  it('routes user image attachments through the injected message-images renderer', () => {
+    const plugin = mountPlugin()
+    const t = ((key: string) => key) as never
+    const renderMessageImages = vi.fn(() => null)
+    const attachments = [{ id: 'a' }, { id: 'b' }] as never
+    render(
+      <UserMarkdownBubble
+        content={[
+          { type: 'text', text: 'look' },
+          { type: 'image', attachment: attachments[0] },
+          { type: 'image', attachment: attachments[1] },
+        ] as never}
+        time={Date.now()}
+        renderMessageImages={renderMessageImages}
+        t={t}
+      />,
+    )
+    expect(renderMessageImages).toHaveBeenCalledTimes(2)
+    expect(renderMessageImages).toHaveBeenCalledWith({
+      images: [{ attachment: attachments[0] }],
+      align: 'end',
+      compact: true,
+    })
     plugin.dispose()
   })
 

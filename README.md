@@ -199,7 +199,7 @@ pnpm pack --dry-run
 
 ## 兼容性
 
-- DeepSeek Harness `0.1.0-rc.5` 及以上
+- DeepSeek Harness `0.1.5-rc.3` 及以上
 - React 18 及以上
 - 仅替换 Web conversation 的 `assistant-step`
 - 旧版 Harness 如果没有 priority-based slot shadowing，会直接加载失败，避免出现双 renderer
