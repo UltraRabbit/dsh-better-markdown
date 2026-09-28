@@ -6,7 +6,7 @@
 import { Fragment, memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
-  IconCheckOutline16, IconCopyOutline16, JsonBlock, Tooltip, writeClipboard,
+  IconCheckOutlineRegular, IconCopyOutlineRegular, JsonBlock, Tooltip, writeClipboard,
 } from '@deepseek-ai/dsh-client-ui-primitives'
 import type {
   ChatNodeViewProps, ChatViewSlotProps, SteeringMessageNode, UserMessageNode,
@@ -127,7 +127,7 @@ function UserCopyActions({ text, time, t }: {
           aria-label={copied ? t('copied') : t('copy')}
           onClick={onCopy}
         >
-          {copied ? <IconCheckOutline16 /> : <IconCopyOutline16 />}
+          {copied ? <IconCheckOutlineRegular /> : <IconCopyOutlineRegular />}
         </button>
       </Tooltip>
     </div>

@@ -2,7 +2,7 @@
 
 import type { Context } from '@deepseek-ai/cordis'
 // Type-only: pulls the renderer's SlotRegistry merge onto Context (ctx.slots.inject/register).
-// The client runtime no longer declares `ctx.slots` in 0.1.5-rc.3.
+// The core client runtime does not declare `ctx.slots`; the renderer's client entry adds it.
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import { removeCustomComponents, setCustomComponents } from 'markstream-react'
 import 'markstream-react/index.css'
