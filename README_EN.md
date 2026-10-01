@@ -190,7 +190,7 @@ Key files:
 
 ## Compatibility
 
-- DeepSeek Harness `0.1.7-rc.1` or newer (`^0.1.7-rc.1`: every 0.1.7 prerelease and later 0.1.x releases)
+- DeepSeek Harness `0.1.7-rc.1` or newer (`>=0.1.7-rc.1`, no upper bound: every 0.1.7 prerelease, the 0.1.7 release, and later lines such as 0.2.0 all count as compatible)
 - React 18 or newer
 - Replaces only the Web conversation `assistant-step`
 - Older Harness builds without priority-based slot shadowing fail at load time instead of mounting two renderers
